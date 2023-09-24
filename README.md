@@ -1,4 +1,4 @@
-# Cosmos Testnet Tutorial
+# Cosmos Multiple Validators Tutorial
 
 ## 1. Prerequisites
 
