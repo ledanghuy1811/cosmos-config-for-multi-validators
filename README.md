@@ -24,7 +24,8 @@ ignite chain build
 ## 3. Create keys for your nodes
 
 Cosmos SDK will automatically create a binary cli, and we can use it as a command: `appd`
-
+Please make sure to check your default keyring on client.toml. 
+If it is "os", the folder "keyring" will not show up.
 ```
 appd keys add <key-name-1>
 appd keys add <key-name-2>
@@ -32,7 +33,8 @@ appd keys add <key-name-2>
 ```
 
 ## 4. Initialize chain nodes
-
+Here you will init multiple folders for different nodes.
+Note here: Two nodes have to have different config and data folder.
 ```
 appd init <moniker1> --home <addr-1> --chain-id <your-chain-id>
 appd init <moniker2> --home <addr-2> --chain-id <your-chain-id>
@@ -40,7 +42,8 @@ appd init <moniker2> --home <addr-2> --chain-id <your-chain-id>
 ```
 
 ## 5. Add genesis accounts
-
+Add genesis for main chain, other chain do not have role to do this.
+Instead, they will sync with the first chain on below instruction
 ```
 appd add-genesis-account $(appd keys show <key-name-1> -a) <amount>stake --home <addr-1>
 appd add-genesis-account $(appd keys show <key-name-2> -a) <amount>stake --home <addr-1>
