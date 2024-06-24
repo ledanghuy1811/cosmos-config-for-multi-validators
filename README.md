@@ -45,16 +45,16 @@ appd init <moniker2> --home <addr-2> --chain-id <your-chain-id>
 Add genesis for main chain, other chain do not have role to do this.
 Instead, they will sync with the first chain on below instruction
 ```
-appd add-genesis-account $(appd keys show <key-name-1> -a) <amount>stake --home <addr-1>
-appd add-genesis-account $(appd keys show <key-name-2> -a) <amount>stake --home <addr-1>
+appd genesis add-genesis-account $(appd keys show <key-name-1> -a) <amount>stake --home <addr-1>
+appd genesis add-genesis-account $(appd keys show <key-name-2> -a) <amount>stake --home <addr-1>
 ...
 ```
 
 ## 6. Stake into the chain
 
 ```
-appd gentx <key-name-1> <amount>stake --chain-id <your-chain-id> --home <addr-1>
-appd collect-gentxs --home <addr-1>
+appd genesis gentx <key-name-1> <amount>stake --chain-id <your-chain-id> --home <addr-1>
+appd genesis collect-gentxs --home <addr-1>
 ```
 
 ## 7. Start the chain node
@@ -93,13 +93,13 @@ persistent_peers="<node-id-1>@<listen-addr>:<port>,<node-id-1>@<listen-addr>:<po
 To get the node id, run this command:
 
 ```
-appd tendermint show-node-id
+appd tendermint show-node-id --home <addr-1>
 ```
 
 After everything is done, you can start the node with:
 
 ```
-appd start <addr-2>
+appd start --home <addr-2>
 ```
 
 NOTE: in local development, if using `127.0.0.1 and the node throws an error, you can try `localhost` instead.
@@ -109,7 +109,7 @@ NOTE: in local development, if using `127.0.0.1 and the node throws an error, yo
 Before sending the create-validator transaction, you need to send some tokens from the existing validator to the new ones. Run this command:
 
 ```
-appd q account <account-addr> --chain-id testnet --home <home-dir>
+appd q auth account <account-addr> --chain-id <your-chain-id>
 ```
 
 You might see an error is thrown saying that the account is not found. This problem may occur if the account was created on a different node or on a different chain with a different chain ID. When querying for an account, the node will look for the account's address in its local state database. If the account was not created on that node or chain, then the node will not have the account's address in its local state database and will return an error.
@@ -117,25 +117,36 @@ You might see an error is thrown saying that the account is not found. This prob
 To solve this problem, you can send tokens from the existing validator to the new ones, so that the validator can recognize your new account address. Run this command:
 
 ```
-appd tx bank send <account-addr> <amount>stake --chain-id testnet --home <home-dir>
+appd tx bank send <key_or_from_account_addr> <to_account-addr> <amount>stake --chain-id <your-chain-id> --fess <fee_required>
 ```
 
 Now you can run the previous command to check the balance of the account.
 
 Create a staking transaction by running:
+- First, you create a `validator.json` file contains following:
+```
+{
+  "pubkey": {
+    "@type": "/cosmos.crypto.ed25519.PubKey",
+    "key": "your-public-key"
+  },
+  "amount": "amount-stake",
+  "moniker": "your-monkier",
+  "identity": "",
+  "website": "",
+  "security": "",
+  "details": "",
+  "commission-rate": "0.1",
+  "commission-max-rate": "0.2",
+  "commission-max-change-rate": "0.01",
+  "min-self-delegation": "1000000"
+}
 
 ```
-appd tx staking create-validator \                          
-  --amount=<amount>stake \
-  --pubkey=$(appd tendermint show-validator --home <addr-2>) \
-  --moniker=<moniker2> \
-  --chain-id=<your-chain-id> \
-  --commission-rate="0.10" \
-  --commission-max-rate="0.20" \
-  --commission-max-change-rate="0.01" \
-  --min-self-delegation="1000000" \
-  --gas="auto" \
-  --from=<key-name-2> --home <addr-2>
+- Then you run this command:
+
+```
+appd tx staking create-validator path/to/validator.json --chain-id <your-chain-id> --from <key_name> --gas auto --fees <fee_required>
 ```
 
 Restart the node, and you will have another validator.
